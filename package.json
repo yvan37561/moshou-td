@@ -1,0 +1,16 @@
+{
+  "name": "moshou-td",
+  "version": "2.0.0",
+  "description": "《山海机关录：墨守》- 国风机关策略塔防与局内肉鸽构筑游戏",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "keywords": [
+    "tower-defense",
+    "roguelite",
+    "canvas-game"
+  ],
+  "author": "Antigravity",
+  "license": "ISC"
+}
