@@ -1,22 +1,23 @@
 /**
- * 《山海机关录：墨守》国风合成音效引擎 (Web Audio API)
- * 无需外部依赖，轻量级纯程序合成国风打击、箭矢、齿轮、爆炸与仙玄法术音效
+ * 《山海机关录：墨守》现代Q版纯程序合成音效引擎 (Web Audio API)
+ * 植物大战僵尸同款多音阶采集、植物落子、大嘴咀嚼、土豆爆破与割草机警报音效
  */
 
 class SoundEngine {
   constructor() {
     this.ctx = null;
     this.enabled = true;
-    this.masterGain = null;
+    this.sunToneIndex = 0;
+    this.sunTones = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25]; // 宫商角徵羽五声音阶
   }
 
   init() {
     if (!this.ctx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      if (AudioContext) {
-        this.ctx = new AudioContext();
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) {
+        this.ctx = new AudioCtx();
         this.masterGain = this.ctx.createGain();
-        this.masterGain.gain.value = 0.25; // 默认音量
+        this.masterGain.gain.value = 0.28;
         this.masterGain.connect(this.ctx.destination);
       }
     }
@@ -25,171 +26,208 @@ class SoundEngine {
     }
   }
 
-  playGearClick() {
+  // 1. 点灵气/太阳收集音效 (五音阶欢快递增)
+  playSun() {
     if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const freq = this.sunTones[this.sunToneIndex % this.sunTones.length];
+    this.sunToneIndex++;
+
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(320, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.05);
+    osc.frequency.setValueAtTime(freq, now);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.12);
 
-    gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+    gain.gain.setValueAtTime(0.35, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.06);
+    osc.start(now);
+    osc.stop(now + 0.16);
   }
 
-  playShootArrow() {
+  // 2. 种下机关 (PvZ Plant Bloop)
+  playPlant() {
     if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.12);
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(380, now + 0.08);
 
-    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.13);
+    osc.start(now);
+    osc.stop(now + 0.11);
   }
 
+  // 3. 铲子拆解 (Crunch Dig)
+  playShovel() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(160, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.1);
+
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.11);
+  }
+
+  // 4. 连弩射击 (Arrow Twang)
+  playArrow() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(750, now);
+    osc.frequency.exponentialRampToValueAtTime(220, now + 0.09);
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.09);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  }
+
+  // 5. 命中受击 (Hit Clang)
   playHit() {
     if (!this.enabled || !this.ctx) return;
-    // 陶土与青铜敲击音
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(240, now);
+    osc.frequency.exponentialRampToValueAtTime(90, now + 0.06);
+
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 0.07);
+  }
+
+  // 6. 饕餮吞咬 (Chomper Bite)
+  playChomp() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'square';
-    osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.08);
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
 
-    gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.08);
+    gain.gain.setValueAtTime(0.45, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.09);
+    osc.start(now);
+    osc.stop(now + 0.16);
   }
 
+  // 7. 震天埋雷/爆破 (Potato Boom)
   playExplosion() {
     if (!this.enabled || !this.ctx) return;
-    // 爆炸噪声
-    const bufferSize = this.ctx.sampleRate * 0.4;
+    const now = this.ctx.currentTime;
+    const bufferSize = this.ctx.sampleRate * 0.35;
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const data = buffer.getChannelData(0);
     for (let i = 0; i < bufferSize; i++) {
       data[i] = Math.random() * 2 - 1;
     }
-
     const noise = this.ctx.createBufferSource();
     noise.buffer = buffer;
 
     const filter = this.ctx.createBiquadFilter();
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(400, this.ctx.currentTime);
-    filter.frequency.exponentialRampToValueAtTime(40, this.ctx.currentTime + 0.4);
+    filter.frequency.setValueAtTime(320, now);
+    filter.frequency.exponentialRampToValueAtTime(40, now + 0.35);
 
     const gain = this.ctx.createGain();
-    gain.gain.setValueAtTime(0.7, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+    gain.gain.setValueAtTime(0.7, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
 
     noise.connect(filter);
     filter.connect(gain);
     gain.connect(this.masterGain);
-    noise.start();
+    noise.start(now);
+    noise.stop(now + 0.36);
   }
 
-  playCollectQi() {
-    if (!this.enabled || !this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(440, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(880, this.ctx.currentTime + 0.15);
-
-    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.16);
-  }
-
-  playCoin() {
-    if (!this.enabled || !this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(987, this.ctx.currentTime);
-    osc.frequency.setValueAtTime(1318, this.ctx.currentTime + 0.08);
-
-    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.22);
-  }
-
-  playOverload() {
-    if (!this.enabled || !this.ctx) return;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(200, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(900, this.ctx.currentTime + 0.3);
-
-    gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.35);
-
-    osc.connect(gain);
-    gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.36);
-  }
-
+  // 8. 寒冰冻结 (Ice Freeze)
   playFreeze() {
     if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.2);
+    osc.frequency.setValueAtTime(880, now);
+    osc.frequency.exponentialRampToValueAtTime(1320, now + 0.18);
 
-    gain.gain.setValueAtTime(0.25, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.22);
+    osc.start(now);
+    osc.stop(now + 0.21);
   }
 
-  playLionRoar() {
+  // 9. 阵眼石狮小推车启动冲撞 (Lawn Mower Rush)
+  playLawnMower() {
     if (!this.enabled || !this.ctx) return;
-    this.playExplosion();
+    const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(120, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(60, this.ctx.currentTime + 0.5);
+    osc.frequency.setValueAtTime(90, now);
+    osc.frequency.linearRampToValueAtTime(320, now + 0.6);
 
-    gain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.6);
+    gain.gain.setValueAtTime(0.5, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
 
     osc.connect(gain);
     gain.connect(this.masterGain);
-    osc.start();
-    osc.stop(this.ctx.currentTime + 0.65);
+    osc.start(now);
+    osc.stop(now + 0.75);
+  }
+
+  // 10. 大波敌人告警声 (Huge Wave Siren Horn)
+  playHugeWave() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(130, now);
+    osc.frequency.exponentialRampToValueAtTime(180, now + 0.4);
+
+    gain.gain.setValueAtTime(0.6, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2);
+
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start(now);
+    osc.stop(now + 1.25);
   }
 }
 
-const AudioSys = new SoundEngine();
+window.soundEngine = new SoundEngine();

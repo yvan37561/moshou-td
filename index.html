@@ -5,191 +5,137 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>《山海机关录：墨守》- 国风机关肉鸽策略塔防</title>
+  <title>《山海机关录：墨守》- 现代Q版机关策略塔防</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- 手机横屏游玩提示蒙层 -->
-  <div id="orientationNotice" class="orientation-notice hidden">
-    <div class="notice-box">
-      <div class="notice-icon">📱 ↺</div>
-      <h3>建议横屏开启神机阵盘</h3>
-      <p>为展现 5×9 墨家完整大阵，横屏可享受最佳触控与视效！</p>
-      <button id="dismissNoticeBtn" class="btn" style="margin-top:12px; background:#c69c3a;">继续竖屏体验</button>
-    </div>
-  </div>
 
-  <div id="gameContainer">
-    <!-- 顶部状态与资源栏 -->
-    <header id="topBar">
-      <div class="resource-group">
-        <div class="res-item">
-          <span class="icon">📜</span>
-          <span id="floorLabel">第 1 层</span>
+  <!-- 主视口自适应框架 (960 x 640 经典视口) -->
+  <div id="app-viewport">
+
+    <!-- 顶部经典植物大战僵尸木雕卡槽栏 (PvZ Top Bar) -->
+    <header id="pvz-top-bar">
+      <!-- 1. 灵气太阳池 (Sun Bank) -->
+      <div id="sun-bank" onclick="window.soundEngine && window.soundEngine.playSun()">
+        <div class="sun-icon-wrap">
+          <span class="sun-gear">⚙️</span>
         </div>
-        <div class="res-item">
-          <span class="icon">✨</span>
-          <span>灵气:</span>
-          <span id="qiValue">125</span>
+        <div class="sun-val" id="qi-val">150</div>
+      </div>
+
+      <!-- 2. 机关种子卡牌栏 (Seed Bank) -->
+      <div id="seed-bank"></div>
+
+      <!-- 3. 鲁班拆解铲槽 (PvZ Shovel Slot) -->
+      <div id="shovel-slot" onclick="toggleShovelMode()">
+        <span class="shovel-icon">🛠️</span>
+        <span class="shovel-label">拆解铲</span>
+      </div>
+
+      <!-- 4. 波次进度标尺 (PvZ Wave Progress Flag) -->
+      <div id="wave-meter-wrap">
+        <div class="wave-title-row">
+          <span>🌊 魇魔波次</span>
+          <span id="wave-num-text">1 / 10</span>
         </div>
-        <div class="res-item">
-          <span class="icon">🪙</span>
-          <span>刀币:</span>
-          <span id="coinValue">100</span>
-        </div>
-        <!-- 天工炉过载能量 -->
-        <div class="overload-container">
-          <span class="icon">🔥</span>
-          <span>天工炉:</span>
-          <div class="overload-bar-wrap">
-            <div id="overloadBar"></div>
-            <span id="overloadText">0 / 100</span>
-          </div>
+        <div class="wave-track">
+          <div class="wave-fill" id="wave-fill"></div>
+          <span class="wave-head-marker" id="wave-head">👾</span>
+          <span class="wave-flag" style="left: 45%;">🚩</span>
+          <span class="wave-flag" style="right: 5%;">🚩</span>
         </div>
       </div>
 
-      <div class="controls-group">
-        <button id="talentBtn" class="btn">🏛️ 墨门矩子阁</button>
-        <button id="speedBtn" class="btn">1X 速</button>
-        <button id="pauseBtn" class="btn">暂停</button>
+      <!-- 5. 菜单与大招控制组 -->
+      <div class="top-menu-group">
+        <button id="overload-btn" class="mini-btn overload-pill" onclick="triggerOverload()">⚡ 机巧过载 (50%)</button>
+        <div style="display: flex; gap: 4px;">
+          <button class="mini-btn" onclick="toggleModal('talent-modal')">🏛️ 矩子阁</button>
+          <button class="mini-btn" onclick="toggleModal('map-modal')">🗺️ 八阵图</button>
+          <button class="mini-btn" id="speed-btn" onclick="toggleGameSpeed()">⏩ 1X</button>
+        </div>
       </div>
     </header>
 
-    <!-- 主战场与手牌卡槽 -->
-    <div id="mainArea">
-      <!-- 左侧机关卡槽 -->
-      <aside id="handSlots">
-        <div id="cardSlots"></div>
-      </aside>
+    <!-- 战场画布主舞台 (The Lawn Stage) -->
+    <main id="canvas-stage">
+      <canvas id="gameCanvas" width="960" height="546"></canvas>
 
-      <!-- 核心战斗画布 (5x9 青石阵盘) -->
-      <canvas id="gameCanvas" width="1070" height="624"></canvas>
-
-      <!-- 底部浮动控制 (鲁班拆解钳与机巧过载) -->
-      <div id="floatingControls">
-        <button id="dismantleBtn" class="action-card-btn">
-          <span>🛠️ 鲁班拆解钳</span>
-          <small>(返还40%+灵气)</small>
-        </button>
-        <button id="overloadBtn" class="action-card-btn">
-          <span>⚡ 机巧过载</span>
-          <small>(消耗50能量大招)</small>
-        </button>
+      <!-- PvZ 经典大波僵尸红色警告横幅 (Huge Wave Alert Banner) -->
+      <div id="huge-wave-banner">
+        <div class="huge-wave-text">⚠️ 一大波山海魇魔正在逼近！</div>
+        <div class="huge-wave-sub">全军机关戒备 · 筑坚壁以拒万妖</div>
       </div>
-    </div>
 
-    <!-- 1. 通关胜利结算与三选一弹窗 -->
-    <div id="victoryModal" class="modal-overlay hidden">
-      <div class="modal-dialog">
-        <div id="victoryContent"></div>
-      </div>
-    </div>
-
-    <!-- 2. 八阵图分岔星图弹窗 -->
-    <div id="mapModal" class="modal-overlay hidden">
-      <div class="modal-dialog">
-        <h3>🗺️ 八阵图 · 奇门演武分岔</h3>
-        <p style="text-align:center; color:#bdc3c7;">选择下一步镇守关隘或探索秘境：</p>
-        <div class="map-nodes-wrap" id="mapNodesContainer"></div>
-      </div>
-    </div>
-
-    <!-- 3. 鬼谷商铺弹窗 -->
-    <div id="shopModal" class="modal-overlay hidden">
-      <div class="modal-dialog" style="width: 820px;">
-        <h3>🏪 【诡市·鬼谷商铺】</h3>
-        <div class="shop-shelves-wrap" id="shopItemsContainer"></div>
-        <div class="shop-bottom-services">
-          <button id="rerollShopBtn" class="btn">🔮 卜卦刷新货架</button>
-          <button id="repairCoreBtn" class="btn">🔧 修缮中枢机关 (55刀币)</button>
-          <button id="closeShopBtn" class="btn" style="background:#27ae60;">整备完毕，踏入战阵</button>
+      <!-- 鲁班天工密卷三选一强化弹窗 (PvZ Roguelite Buff Modal) -->
+      <div id="rogue-modal">
+        <div class="modal-wood-frame">
+          <div class="modal-header">📜 鲁班密卷 · 天工强化</div>
+          <div class="modal-subtext">击退凶猛精英潮！选择一项墨家秘术强化全场阵盘</div>
+          <div class="buff-cards-row" id="buff-cards-row"></div>
         </div>
       </div>
-    </div>
 
-    <!-- 4. 天机赌局叙事事件弹窗 -->
-    <div id="eventModal" class="modal-overlay hidden">
-      <div class="modal-dialog">
-        <h3 id="eventTitle">【天机赌局】</h3>
-        <div class="event-story" id="eventStory"></div>
-        <div class="event-options-wrap" id="eventOptionsContainer"></div>
+      <!-- 墨门矩子阁天赋弹窗 -->
+      <div id="talent-modal" class="overlay-dialog">
+        <div class="dialog-box">
+          <div class="dialog-title">🏛️ 墨家矩子阁 · 机关秘术</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
+            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
+              <b style="color: #f5b041;">⚙️ 飞轮润滑</b>
+              <p style="color: #bdc3c7; margin-top: 4px;">全场机关初始部署冷却缩减 20%</p>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
+              <b style="color: #f5b041;">🔥 天工熔炉</b>
+              <p style="color: #bdc3c7; margin-top: 4px;">击杀魇魔时额外产生 5 点过载能量</p>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
+              <b style="color: #f5b041;">🛡️ 兼爱非攻</b>
+              <p style="color: #bdc3c7; margin-top: 4px;">玄武盾与所有机关耐久度提升 25%</p>
+            </div>
+            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
+              <b style="color: #f5b041;">🌾 节用富灵</b>
+              <p style="color: #bdc3c7; margin-top: 4px;">拆解铲返还灵气比例永久提升至 60%</p>
+            </div>
+          </div>
+          <button class="close-dialog-btn" onclick="toggleModal('talent-modal')">关闭卷轴</button>
+        </div>
       </div>
-    </div>
 
-    <!-- 5. 墨门矩子阁天赋弹窗 -->
-    <div id="talentModal" class="modal-overlay hidden">
-      <div class="modal-dialog" style="width: 800px;">
-        <h3>🏛️ 墨门矩子阁 · 传世奇术</h3>
-        <p style="color:#f1c40f;">持有天工墨锭：<span id="inkAmount">120</span> 锭</p>
-        <div id="talentTreesContainer" style="display:flex; gap:16px; margin-top:10px;"></div>
-        <button id="closeTalentBtn" class="btn" style="margin-top:15px; align-self:center;">闭关参毕，返回阵前</button>
+      <!-- 八阵图分岔弹窗 -->
+      <div id="map-modal" class="overlay-dialog">
+        <div class="dialog-box">
+          <div class="dialog-title">🗺️ 八阵图 · 奇门演武星图</div>
+          <div style="text-align: center; color: #bdc3c7; font-size: 14px; margin-bottom: 14px;">
+            当前镇守：【第一关 · 雁门关外青石坡】
+          </div>
+          <div style="display: flex; justify-content: space-around; gap: 10px;">
+            <div style="background: rgba(0,0,0,0.5); padding: 14px; border-radius: 10px; border: 1.5px solid #27ae60; text-align: center; flex: 1;">
+              <div style="font-size: 24px;">⚔️</div>
+              <div style="color: #2ecc71; font-weight: bold; margin-top: 6px;">青铜兵俑大营</div>
+              <div style="font-size: 11px; color: #aaa; margin-top: 4px;">难度：普通 (刀币+60)</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.5); padding: 14px; border-radius: 10px; border: 1.5px solid #e67e22; text-align: center; flex: 1;">
+              <div style="font-size: 24px;">💀</div>
+              <div style="color: #f39c12; font-weight: bold; margin-top: 6px;">蛮荒巨斧精英</div>
+              <div style="font-size: 11px; color: #aaa; margin-top: 4px;">难度：精英 (鲁班密卷+1)</div>
+            </div>
+            <div style="background: rgba(0,0,0,0.5); padding: 14px; border-radius: 10px; border: 1.5px solid #9b59b6; text-align: center; flex: 1;">
+              <div style="font-size: 24px;">🏪</div>
+              <div style="color: #bb86fc; font-weight: bold; margin-top: 6px;">鬼谷奇珍诡市</div>
+              <div style="font-size: 11px; color: #aaa; margin-top: 4px;">休整·购买稀有机关图谱</div>
+            </div>
+          </div>
+          <button class="close-dialog-btn" onclick="toggleModal('map-modal')">重返战阵</button>
+        </div>
       </div>
-    </div>
+    </main>
+
   </div>
 
-  <!-- 核心逻辑脚本引入 -->
-  <script src="js/config.js"></script>
+  <!-- 引入纯程序合成音效引擎 -->
   <script src="js/audio.js"></script>
-  <script src="js/systems/Grid.js"></script>
-  <script src="js/entities/Projectile.js"></script>
-  <script src="js/entities/DropItem.js"></script>
-  <script src="js/entities/GuardianLion.js"></script>
-  <script src="js/entities/Automaton.js"></script>
-  <script src="js/entities/Fiend.js"></script>
-  <script src="js/entities/Boss.js"></script>
-  <script src="js/systems/RogueliteManager.js"></script>
-  <script src="js/systems/ShopSystem.js"></script>
-  <script src="js/systems/EventSystem.js"></script>
-  <script src="js/systems/TalentSystem.js"></script>
-  <script src="js/render/Renderer.js"></script>
-  <script src="js/main.js"></script>
-
-  <!-- 矩子阁天赋界面逻辑 -->
-  <script>
-    document.getElementById('talentBtn').addEventListener('click', () => {
-      const modal = document.getElementById('talentModal');
-      const container = document.getElementById('talentTreesContainer');
-      const game = window.gameInstance;
-      document.getElementById('inkAmount').textContent = game.talents.ink;
-      container.innerHTML = '';
-
-      for (const treeKey of Object.keys(CONFIG.TALENTS)) {
-        const tree = CONFIG.TALENTS[treeKey];
-        const treeEl = document.createElement('div');
-        treeEl.style.flex = '1';
-        treeEl.style.background = '#1a2736';
-        treeEl.style.border = '1px solid #8e793e';
-        treeEl.style.padding = '10px';
-        treeEl.style.borderRadius = '6px';
-        treeEl.innerHTML = `<h5 style="color:#f1c40f; margin-bottom:8px;">${tree.name}</h5>`;
-
-        tree.nodes.forEach(node => {
-          const lvl = game.talents.talentLevels[node.id] || 0;
-          const nodeEl = document.createElement('div');
-          nodeEl.style.marginBottom = '10px';
-          nodeEl.style.fontSize = '12px';
-          nodeEl.innerHTML = `
-            <div style="font-weight:bold; color:#ecf0f1;">${node.name} (${lvl}/${node.maxLevel})</div>
-            <div style="color:#bdc3c7; font-size:11px;">${node.desc}</div>
-            <button class="choice-btn" style="margin-top:4px; font-size:11px; padding:3px 8px;" ${lvl >= node.maxLevel ? 'disabled' : ''}>
-              ${lvl >= node.maxLevel ? '已满级' : `领悟 (${node.cost} 墨锭)`}
-            </button>
-          `;
-          nodeEl.querySelector('button').addEventListener('click', () => {
-            const res = game.talents.upgradeNode(node.id, node.cost, node.maxLevel);
-            alert(res.msg);
-            document.getElementById('talentBtn').click(); // 刷新
-          });
-          treeEl.appendChild(nodeEl);
-        });
-        container.appendChild(treeEl);
-      }
-      modal.classList.remove('hidden');
-    });
-
-    document.getElementById('closeTalentBtn').addEventListener('click', () => {
-      document.getElementById('talentModal').classList.add('hidden');
-    });
-  </script>
+  <!-- 引入现代Q版核心引擎 -->
+  <script src="js/game.js"></script>
 </body>
 </html>
