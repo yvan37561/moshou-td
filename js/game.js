@@ -1,5 +1,6 @@
 /**
- * 《山海机关录：墨守》现代Q版纯原生矢量渲染引擎 (0KB资源加载·视网膜级锐利·生动表情动画)
+ * 《山海机关录：墨守》现代国风Q版高阶美学引擎
+ * 融合华丽青铜符令、高清微雕立绘、滤镜饱和度增强与PvZ经典Q弹动态
  */
 
 // 1. 画布与上下文
@@ -10,28 +11,50 @@ const ROWS = 5, COLS = 9;
 const CELL_W = 92, CELL_H = 96;
 const BOARD_X = 96, BOARD_Y = 24;
 
-// 2. 墨家 8 张经典种子卡牌配置 (搭配鲜艳明快的 Q 版图标)
+// 2. 高清美术资源加载器
+const ASSET_PATHS = {
+  bg: 'assets/background.jpg',
+  furnace: 'assets/furnace.jpg',
+  crossbow: 'assets/crossbow.jpg',
+  shield: 'assets/shield.jpg',
+  taotie: 'assets/taotie.jpg',
+  landmine: 'assets/landmine.jpg',
+  frost_mage: 'assets/frost_mage.jpg',
+  pear_blossom: 'assets/pear_blossom.jpg',
+  fire_crow: 'assets/fire_crow.jpg',
+  lion: 'assets/guardian_lion.jpg',
+  soldier: 'assets/soldier.jpg'
+};
+
+const IMAGES = {};
+Object.keys(ASSET_PATHS).forEach(key => {
+  const img = new Image();
+  img.src = ASSET_PATHS[key];
+  IMAGES[key] = img;
+});
+
+// 3. 墨家 8 张经典种子卡牌配置
 const SEED_CATALOG = [
-  { id: 'furnace', name: '聚灵炉', cost: 50, cd: 6000, hp: 300, icon: '🔥', desc: '产出灵气齿轮，九宫格攻速+15%' },
-  { id: 'crossbow', name: '连弩车', cost: 100, cd: 4000, hp: 300, icon: '🏹', desc: '直线发射铜箭，第4次触发双发连射' },
-  { id: 'shield', name: '玄武盾', cost: 75, cd: 12000, hp: 1600, icon: '🐢', desc: '软萌高防坚壁，反弹荆棘反伤，动态换表情' },
-  { id: 'taotie', name: '饕餮兽', cost: 125, cd: 8000, hp: 450, icon: '👹', desc: '大口吞噬近战小怪，腮帮咀嚼消化产灵气' },
-  { id: 'landmine', name: '震天雷', cost: 25, cd: 10000, hp: 200, icon: '💣', desc: '埋地转动发条，就绪后触发1500巨额范围轰爆' },
-  { id: 'frost_mage', name: '霜方士', cost: 175, cd: 6000, hp: 300, icon: '❄️', desc: '发射冰霜符减速，叠满冻结敌人为冰块' },
-  { id: 'pear_blossom', name: '梨花针', cost: 200, cd: 9000, hp: 350, icon: '🌸', desc: '暴雨梨花多向破甲散弹齐射' },
-  { id: 'fire_crow', name: '火飞鸦', cost: 150, cd: 16000, hp: 9999, icon: '🚀', desc: '火箭飞鸢掠过整行，全屏贯穿烈焰轰炸' }
+  { id: 'furnace', name: '聚灵炉', cost: 50, cd: 6000, hp: 300, imgKey: 'furnace', desc: '产出灵气齿轮，九宫格友军攻速+15%' },
+  { id: 'crossbow', name: '诸葛连弩', cost: 100, cd: 4000, hp: 300, imgKey: 'crossbow', desc: '直线射击铜箭，每4次触发双发连射' },
+  { id: 'shield', name: '玄武重盾', cost: 75, cd: 12000, hp: 1800, imgKey: 'shield', desc: '高耐久坚壁，近战攻击反弹荆棘尖刺' },
+  { id: 'taotie', name: '吞天饕餮', cost: 125, cd: 8000, hp: 450, imgKey: 'taotie', desc: '大嘴秒杀近战小怪，消化后吐出灵气' },
+  { id: 'landmine', name: '震天埋雷', cost: 25, cd: 10000, hp: 200, imgKey: 'landmine', desc: '发条旋紧后出土，触碰造成1500范围轰爆' },
+  { id: 'frost_mage', name: '寒霜方士', cost: 175, cd: 6000, hp: 300, imgKey: 'frost_mage', desc: '发射寒冰符减速35%，叠满冰封禁锢' },
+  { id: 'pear_blossom', name: '暴雨梨花', cost: 200, cd: 9000, hp: 350, imgKey: 'pear_blossom', desc: '多向扇形破甲重箭散射，压制群怪' },
+  { id: 'fire_crow', name: '神火飞鸦', cost: 150, cd: 16000, hp: 9999, imgKey: 'fire_crow', desc: '火箭飞鸢沿本行贯穿，全屏烈焰轰炸' }
 ];
 
-// 3. 鲁班天工密卷肉鸽强化词条
+// 4. 鲁班天工密卷肉鸽强化词条
 const ROGUE_BUFFS = [
-  { id: 'thunder_bow', tag: '天工进化', title: '【雷公连弩】', desc: '连弩车射出弹射电弧箭，伤害提升 40% 并连锁周围敌人！' },
+  { id: 'thunder_bow', tag: '天工进化', title: '【雷公连弩】', desc: '连弩车射出弹射电弧箭，攻击+40%并连锁周围2名敌人！' },
   { id: 'sun_furnace', tag: '太阳奇术', title: '【金乌产气】', desc: '聚灵炉产气间隔缩短 3 秒，每次产气向随机敌人射出烈阳弹！' },
-  { id: 'iron_wall', tag: '坚壁清野', title: '【重甲反震】', desc: '玄武盾生命上限翻倍，受到攻击反弹 35 点强力金石反伤！' },
-  { id: 'deep_freeze', tag: '奇门遁甲', title: '【极寒领域】', desc: '霜方士攻速提升 25%，处于减速状态的敌人受到伤害增加 30%！' },
+  { id: 'iron_wall', tag: '坚壁清野', title: '【重甲反震】', desc: '玄武盾生命上限翻倍，受到攻击反弹 35 点强力金石伤害！' },
+  { id: 'deep_freeze', tag: '奇门遁甲', title: '【极寒领域】', desc: '寒霜方士攻速提升 25%，处于减速状态的敌人受到伤害增加 30%！' },
   { id: 'overdrive', tag: '矩子神机', title: '【周天灵脉】', desc: '立即获得 150 灵气，全场所有机关攻击速度永久提升 20%！' }
 ];
 
-// 4. 全局核心状态
+// 5. 核心游戏运行状态
 let state = {
   qi: 150,
   wave: 1,
@@ -55,7 +78,7 @@ let state = {
   screenShake: 0
 };
 
-// 5. 初始化种子卡槽 DOM (纯纯的现代明亮 Q 版图标)
+// 6. 初始化种子卡槽 DOM (PvZ 经典样式)
 function initSeedBankUI() {
   const container = document.getElementById('seed-bank');
   container.innerHTML = '';
@@ -67,8 +90,8 @@ function initSeedBankUI() {
     card.title = `${seed.name}: ${seed.desc}`;
     card.onclick = () => selectSeed(seed);
     card.innerHTML = `
-      <div class="card-avatar-wrap" style="background: radial-gradient(circle, #385548 0%, #172421 100%);">
-        <span style="font-size: 26px;">${seed.icon}</span>
+      <div class="card-avatar-wrap">
+        <img src="${ASSET_PATHS[seed.imgKey]}" onerror="this.style.background='#3d564b'">
       </div>
       <div class="card-title">${seed.name}</div>
       <div class="card-cost-pill">⚙ ${seed.cost}</div>
@@ -100,7 +123,7 @@ function triggerOverload() {
   state.overloadTimer = 420;
   state.screenShake = 12;
   if (window.soundEngine) window.soundEngine.playLawnMower();
-  spawnFloatText(BOARD_X + 380, BOARD_Y + 220, '⚡ 全军机巧过载！攻速激增！', '#ffca28', 26);
+  spawnFloatText(BOARD_X + 380, BOARD_Y + 220, '⚡ 全军过载！攻速翻倍！', '#ffca28', 26);
   updateHUD();
 }
 
@@ -148,7 +171,7 @@ function updateHUD() {
   });
 }
 
-// 6. 交互监听 (鼠标与触摸手势)
+// 7. 交互监听 (鼠标与触摸手势)
 function getCanvasCoords(e) {
   const rect = canvas.getBoundingClientRect();
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -223,6 +246,7 @@ function handlePointerClick(e) {
       state.towers.push({
         id: s.id, name: s.name, r, c, x: posX, y: posY,
         hp: s.hp, maxHp: s.hp, cost: s.cost,
+        imgKey: s.imgKey,
         timer: 0, shotCount: 0,
         scaleX: 1.45, scaleY: 0.6, hitFlash: 0,
         armed: s.id !== 'landmine', armTimer: 0,
@@ -263,21 +287,21 @@ function spawnFireCrowRow(r, y) {
   state.screenShake = 6;
   spawnFloatText(BOARD_X + 220, y, '🔥 火飞鸦 · 焚尽八荒！', '#ff5722', 22);
   state.bullets.push({
-    x: BOARD_X, y, r, vx: 10, dmg: 1400, isCrow: true, radius: 24
+    x: BOARD_X, y, r, vx: 10, dmg: 1400, isCrow: true, radius: 26
   });
 }
 
-// 7. 敌人生成与战役推进
+// 8. 敌人生成与战役推进
 let spawnCounter = 0;
 function spawnEnemy() {
   const r = Math.floor(Math.random() * ROWS);
   const y = BOARD_Y + r * CELL_H + CELL_H / 2;
 
   const enemyTypes = [
-    { name: '兵俑', hp: 220, spd: 0.42, color: '#bcaaa4', radius: 24, type: 'soldier' },
-    { name: '藤甲兵', hp: 440, spd: 0.38, color: '#81c784', radius: 25, type: 'vine' },
-    { name: '力士', hp: 900, spd: 0.28, color: '#ffb74d', radius: 30, type: 'brute' },
-    { name: '山魈', hp: 300, spd: 0.85, color: '#ba68c8', radius: 22, type: 'imp' }
+    { name: '兵俑', hp: 220, spd: 0.42, color: '#bcaaa4', radius: 24, imgKey: 'soldier' },
+    { name: '藤甲兵', hp: 440, spd: 0.38, color: '#81c784', radius: 25, imgKey: 'soldier' },
+    { name: '力士', hp: 900, spd: 0.28, color: '#ffb74d', radius: 30, imgKey: 'soldier' },
+    { name: '山魈', hp: 300, spd: 0.85, color: '#ba68c8', radius: 22, imgKey: 'soldier' }
   ];
 
   const idx = Math.min(enemyTypes.length - 1, Math.floor(Math.random() * (1 + state.wave * 0.4)));
@@ -288,8 +312,7 @@ function spawnEnemy() {
     ...tpl, r, x: BOARD_X + COLS * CELL_W + 35, y,
     hp: Math.floor(tpl.hp * waveMult),
     maxHp: Math.floor(tpl.hp * waveMult),
-    chillTimer: 0, freezeTimer: 0, hitFlash: 0,
-    wobble: Math.random() * 10
+    chillTimer: 0, freezeTimer: 0, hitFlash: 0
   });
 }
 
@@ -345,7 +368,7 @@ function triggerExplosion(x, y, radius, dmg) {
   }
 }
 
-// 8. 游戏物理逻辑循环 (60FPS)
+// 9. 核心物理逻辑
 let lastTime = performance.now();
 function updateGame(now) {
   const dt = (now - lastTime) * state.gameSpeed;
@@ -361,7 +384,7 @@ function updateGame(now) {
   if (state.overloadTimer > 0) state.overloadTimer--;
   if (state.screenShake > 0) state.screenShake--;
 
-  // 天降灵气齿轮 (PvZ 阳光)
+  // 天降太阳齿轮
   if (Math.random() < 0.005) {
     state.gears.push({
       x: BOARD_X + 60 + Math.random() * (COLS * CELL_W - 120),
@@ -576,7 +599,7 @@ function updateGame(now) {
         state.lions[e.r] = false;
         state.screenShake = 10;
         if (window.soundEngine) window.soundEngine.playLawnMower();
-        spawnFloatText(BOARD_X + 60, e.y, '🦁 阵眼石狮怒吼冲刺！', '#f5b041', 20);
+        spawnFloatText(BOARD_X + 60, e.y, '🦁 阵眼石狮怒吼冲锋！', '#f5b041', 20);
         spawnFireCrowRow(e.r, e.y);
       } else {
         e.x = BOARD_X + COLS * CELL_W;
@@ -619,7 +642,7 @@ function updateGame(now) {
   updateHUD();
 }
 
-// 9. 现代Q版纯原生矢量绘制系统 (0KB资源加载·视网膜超清·生动表情)
+// 10. 现代国风高阶符令美学渲染 (微雕高清立绘 + 3D青铜浮雕金边 + 鲜艳滤镜增强 + Q弹动态)
 
 function renderGame() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -631,7 +654,7 @@ function renderGame() {
     ctx.translate(sx, sy);
   }
 
-  // 1. 经典植物大战僵尸交替青绿草坪格 (PvZ Lawn)
+  // 1. 经典植物大战僵尸交替青绿草坪格
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const x = BOARD_X + c * CELL_W;
@@ -668,38 +691,52 @@ function renderGame() {
     ctx.restore();
   }
 
-  // 3. 左侧阵眼石狮小推车 (PvZ Lawn Mower)
+  // 3. 左侧阵眼石狮小推车 (高清浮雕小车)
   for (let r = 0; r < ROWS; r++) {
     if (!state.lions[r]) continue;
     const lx = BOARD_X - 48;
     const ly = BOARD_Y + r * CELL_H + CELL_H / 2;
-    drawChibiLion(lx, ly);
+    drawPremiumToken(IMAGES.lion, lx, ly, 30, '#f5b041', false, 1, 1);
   }
 
-  // 4. 绘制场上机关兽 (纯矢量 Chibi Q 版形象)
+  // 4. 绘制场上机关兽 (高清微雕立绘 + 3D青铜金座 + Q弹呼吸)
   const idleWobble = Math.sin(Date.now() / 240) * 0.04;
   state.towers.forEach(t => {
     ctx.save();
     ctx.translate(t.x, t.y);
     ctx.scale(t.scaleX, t.scaleY + idleWobble);
 
-    // 阴影底座
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
-    ctx.beginPath();
-    ctx.ellipse(0, 32, 28, 8, 0, 0, Math.PI * 2);
-    ctx.fill();
-
     // 烘炉九宫格光环
     if (t.id === 'furnace') {
       ctx.beginPath();
       ctx.arc(0, 0, 42, 0, Math.PI * 2);
-      ctx.strokeStyle = 'rgba(255, 202, 40, 0.35)';
+      ctx.strokeStyle = 'rgba(255, 202, 40, 0.4)';
       ctx.lineWidth = 2;
       ctx.stroke();
     }
 
-    // 绘制具体机关造型
-    drawChibiTower(t);
+    const borderColor = state.overloadTimer > 0 ? '#ff5722' : '#f5b041';
+    drawPremiumToken(IMAGES[t.imgKey], 0, 0, 36, borderColor, t.hitFlash > 0);
+
+    // 埋雷未就绪遮罩
+    if (t.id === 'landmine' && !t.armed) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+      ctx.beginPath();
+      ctx.arc(0, 0, 34, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffea79';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('发条中...', 0, 4);
+    }
+
+    // 饕餮咀嚼中提示
+    if (t.id === 'taotie' && t.chewingTimer > 0) {
+      ctx.fillStyle = '#ff7043';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('消化中...', 0, -44);
+    }
 
     // 耐久血条
     if (t.hp < t.maxHp) {
@@ -708,18 +745,19 @@ function renderGame() {
     ctx.restore();
   });
 
-  // 5. 绘制山海魇魔敌人 (纯矢量 Q 版形象)
+  // 5. 绘制山海魇魔敌人
   state.enemies.forEach(e => {
     ctx.save();
     ctx.translate(e.x, e.y);
 
-    // 椭圆投影
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.beginPath();
-    ctx.ellipse(0, e.radius, e.radius * 0.8, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
+    // 绘制高清青铜兵俑/魇魔徽章
+    drawPremiumToken(IMAGES.soldier, 0, 0, e.radius, e.chillTimer > 0 ? '#4fc3f7' : '#e74c3c', e.hitFlash > 0);
 
-    drawChibiEnemy(e);
+    // 名字标签
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(e.name.slice(0, 2), 0, 4);
 
     // 冰封冰块
     if (e.freezeTimer > 0) {
@@ -739,7 +777,7 @@ function renderGame() {
     ctx.save();
     ctx.translate(b.x, b.y);
     if (b.isCrow) {
-      drawChibiFireCrow(0, 0);
+      drawPremiumToken(IMAGES.fire_crow, 0, 0, 28, '#ff5722', false);
     } else {
       ctx.shadowColor = b.color;
       ctx.shadowBlur = 8;
@@ -748,7 +786,6 @@ function renderGame() {
       ctx.arc(0, 0, b.radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // 箭头尾迹
       ctx.fillStyle = '#fff';
       ctx.beginPath();
       ctx.arc(2, 0, b.radius * 0.6, 0, Math.PI * 2);
@@ -789,426 +826,66 @@ function renderGame() {
   ctx.restore();
 }
 
-// 10. 极致精细的纯 Canvas 2D Q版角色造型函数集
-
-function drawChibiTower(t) {
-  const isFlash = t.hitFlash > 0;
-  if (isFlash) {
-    ctx.filter = 'brightness(220%) contrast(150%)';
-  }
-
-  // 1. 聚灵炉 (胖乎乎微笑炉子)
-  if (t.id === 'furnace') {
-    // 炉身
-    ctx.fillStyle = '#b87333';
-    ctx.beginPath();
-    ctx.arc(0, 4, 28, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#f5b041';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // 炉耳
-    ctx.fillStyle = '#8c5324';
-    ctx.beginPath();
-    ctx.arc(-28, -2, 7, 0, Math.PI * 2);
-    ctx.arc(28, -2, 7, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 炉顶小烟囱与青烟
-    ctx.fillStyle = '#d4af37';
-    ctx.fillRect(-10, -32, 20, 10);
-    const smokeOffset = (Date.now() / 200) % 15;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.beginPath();
-    ctx.arc(0, -38 - smokeOffset, 6 + smokeOffset * 0.4, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 萌系眼睛与腮红
-    ctx.fillStyle = '#ff8a80';
-    ctx.beginPath();
-    ctx.arc(-16, 12, 6, 0, Math.PI * 2);
-    ctx.arc(16, 12, 6, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#261a12';
-    ctx.beginPath();
-    ctx.arc(-10, 2, 4, 0, Math.PI * 2);
-    ctx.arc(10, 2, 4, 0, Math.PI * 2);
-    ctx.fill();
-    // 眼神高光
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(-9, 1, 1.8, 0, Math.PI * 2);
-    ctx.arc(11, 1, 1.8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 开心嘴巴
-    ctx.strokeStyle = '#261a12';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(0, 12, 8, 0.2, Math.PI - 0.2);
-    ctx.stroke();
-  }
-  // 2. 连弩车 (呆萌木鸟弩机)
-  else if (t.id === 'crossbow') {
-    // 弩木底盘
-    ctx.fillStyle = '#5d4037';
-    ctx.fillRect(-22, 14, 44, 14);
-    ctx.fillStyle = '#b7791f';
-    ctx.beginPath();
-    ctx.arc(-15, 28, 8, 0, Math.PI * 2);
-    ctx.arc(15, 28, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 鸟型发射头
-    ctx.fillStyle = '#8d6e63';
-    ctx.beginPath();
-    ctx.arc(0, -4, 20, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#d7ccc8';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // 弩嘴
-    ctx.fillStyle = '#f5b041';
-    ctx.beginPath();
-    ctx.moveTo(12, -8);
-    ctx.lineTo(28, -4);
-    ctx.lineTo(12, 0);
-    ctx.closePath();
-    ctx.fill();
-
-    // 瞄准大眼睛
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(6, -8, 6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#212121';
-    ctx.beginPath();
-    ctx.arc(8, -8, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(9, -9, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 弓臂弹簧
-    ctx.strokeStyle = '#f5b041';
-    ctx.lineWidth = 3.5;
-    ctx.beginPath();
-    ctx.arc(-6, -4, 22, -Math.PI * 0.45, Math.PI * 0.45);
-    ctx.stroke();
-  }
-  // 3. 玄武盾 (萌系小乌龟·动态表情)
-  else if (t.id === 'shield') {
-    const hpRatio = t.hp / t.maxHp;
-
-    // 绿色龟头与小四肢
-    ctx.fillStyle = '#4caf50';
-    ctx.beginPath();
-    ctx.arc(0, -22, 12, 0, Math.PI * 2); // 龟头
-    ctx.arc(-22, 14, 8, 0, Math.PI * 2); // 四肢
-    ctx.arc(22, 14, 8, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 坚硬龟壳
-    ctx.fillStyle = '#2e7d32';
-    ctx.beginPath();
-    ctx.arc(0, 4, 26, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#d4af37';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // 龟壳纹理
-    ctx.strokeStyle = '#1b5e20';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(-10, -6, 20, 20);
-
-    // 动态换表情
-    if (hpRatio > 0.6) {
-      // 满血灿烂笑容
-      ctx.fillStyle = '#212121';
-      ctx.beginPath();
-      ctx.arc(-4, -24, 2.5, 0, Math.PI * 2);
-      ctx.arc(4, -24, 2.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#212121';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, -20, 4, 0.2, Math.PI - 0.2);
-      ctx.stroke();
-    } else if (hpRatio > 0.3) {
-      // 半血擦汗吃力
-      ctx.fillStyle = '#212121';
-      ctx.fillRect(-6, -24, 4, 2);
-      ctx.fillRect(2, -24, 4, 2);
-      // 汗珠
-      ctx.fillStyle = '#4fc3f7';
-      ctx.beginPath();
-      ctx.arc(8, -28, 3, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // 残血晕圈眼
-      ctx.strokeStyle = '#212121';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(-4, -24, 4, 0, Math.PI * 2);
-      ctx.arc(4, -24, 4, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  }
-  // 4. 震天雷 (萌系土豆雷)
-  else if (t.id === 'landmine') {
-    if (!t.armed) {
-      // 钻地未就绪：泥土堆与旋转发条
-      ctx.fillStyle = '#795548';
-      ctx.beginPath();
-      ctx.arc(0, 16, 22, Math.PI, 0);
-      ctx.fill();
-
-      // 旋转发条旋钮
-      ctx.save();
-      ctx.translate(0, 8);
-      ctx.rotate(Date.now() / 150);
-      ctx.fillStyle = '#f5b041';
-      ctx.fillRect(-3, -12, 6, 24);
-      ctx.fillRect(-12, -3, 24, 6);
-      ctx.restore();
-
-      // 睡觉呼噜泡泡
-      ctx.fillStyle = 'rgba(129, 212, 250, 0.7)';
-      ctx.beginPath();
-      ctx.arc(14, 0, 5, 0, Math.PI * 2);
-      ctx.fill();
-    } else {
-      // 就绪：钻出地面的元气土豆炸弹
-      ctx.fillStyle = '#a1887f';
-      ctx.beginPath();
-      ctx.ellipse(0, 8, 24, 28, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = '#5d4037';
-      ctx.lineWidth = 2.5;
-      ctx.stroke();
-
-      // 红色必胜头带
-      ctx.fillStyle = '#e53935';
-      ctx.fillRect(-22, -6, 44, 8);
-
-      // 元气大眼睛
-      ctx.fillStyle = '#fff';
-      ctx.beginPath();
-      ctx.arc(-8, 8, 6, 0, Math.PI * 2);
-      ctx.arc(8, 8, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = '#212121';
-      ctx.beginPath();
-      ctx.arc(-8, 8, 3.5, 0, Math.PI * 2);
-      ctx.arc(8, 8, 3.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 怒吼嘴
-      ctx.fillStyle = '#d32f2f';
-      ctx.beginPath();
-      ctx.arc(0, 20, 5, 0, Math.PI);
-      ctx.fill();
-    }
-  }
-  // 5. 饕餮兽 (大嘴凶萌兽)
-  else if (t.id === 'taotie') {
-    ctx.fillStyle = '#512da8';
-    ctx.beginPath();
-    ctx.arc(0, 6, 26, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = '#d1c4e9';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
-
-    // 双小角
-    ctx.fillStyle = '#ffca28';
-    ctx.beginPath();
-    ctx.moveTo(-16, -16); ctx.lineTo(-24, -30); ctx.lineTo(-8, -20); ctx.fill();
-    ctx.moveTo(16, -16); ctx.lineTo(24, -30); ctx.lineTo(8, -20); ctx.fill();
-
-    // 巨口
-    ctx.fillStyle = '#212121';
-    ctx.beginPath();
-    ctx.ellipse(0, 10, 18, t.chewingTimer > 0 ? 8 : 16, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 尖尖小虎牙
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.moveTo(-10, 0); ctx.lineTo(-6, 8); ctx.lineTo(-2, 0); ctx.fill();
-    ctx.moveTo(2, 0); ctx.lineTo(6, 8); ctx.lineTo(10, 0); ctx.fill();
-
-    // 萌眼睛
-    ctx.fillStyle = '#ffca28';
-    ctx.beginPath();
-    ctx.arc(-10, -6, 4, 0, Math.PI * 2);
-    ctx.arc(10, -6, 4, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // 6. 霜方士 (小法师)
-  else if (t.id === 'frost_mage') {
-    // 蓝色小道袍
-    ctx.fillStyle = '#1e88e5';
-    ctx.beginPath();
-    ctx.moveTo(0, -20); ctx.lineTo(24, 28); ctx.lineTo(-24, 28); ctx.closePath();
-    ctx.fill();
-
-    // 脑袋
-    ctx.fillStyle = '#ffe0b2';
-    ctx.beginPath();
-    ctx.arc(0, -10, 14, 0, Math.PI * 2);
-    ctx.fill();
-
-    // 巫师高帽
-    ctx.fillStyle = '#0d47a1';
-    ctx.beginPath();
-    ctx.moveTo(-18, -14); ctx.lineTo(0, -38); ctx.lineTo(18, -14); ctx.closePath();
-    ctx.fill();
-
-    // 冰晶法杖
-    ctx.strokeStyle = '#90caf9';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(16, 26); ctx.lineTo(20, -16);
-    ctx.stroke();
-    ctx.fillStyle = '#00e5ff';
-    ctx.beginPath();
-    ctx.arc(20, -18, 6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  // 7. 暴雨梨花 (莲花机关)
-  else if (t.id === 'pear_blossom') {
-    ctx.save();
-    ctx.rotate(Date.now() / 300);
-    for (let i = 0; i < 6; i++) {
-      ctx.rotate(Math.PI / 3);
-      ctx.fillStyle = i % 2 === 0 ? '#ec407a' : '#f48fb1';
-      ctx.beginPath();
-      ctx.ellipse(0, 18, 8, 16, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.restore();
-    ctx.fillStyle = '#f5b041';
-    ctx.beginPath();
-    ctx.arc(0, 0, 10, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-// 11. 绘制山海魇魔 Chibi 敌人
-function drawChibiEnemy(e) {
-  const isFlash = e.hitFlash > 0;
-  if (isFlash) {
-    ctx.filter = 'brightness(220%) contrast(150%)';
-  }
-
-  // 1. 呆萌兵俑 (小泥人)
-  ctx.fillStyle = e.chillTimer > 0 ? '#81d4fa' : e.color;
-  ctx.beginPath();
-  ctx.arc(0, -4, 18, 0, Math.PI * 2); // 脑袋
-  ctx.fill();
-  ctx.fillRect(-12, 10, 24, 20); // 身体
-
-  // 巨大青铜陶甲头盔与红缨
-  ctx.fillStyle = '#4e342e';
-  ctx.beginPath();
-  ctx.arc(0, -8, 20, Math.PI, 0);
-  ctx.fill();
-  ctx.fillStyle = '#e53935'; // 红缨
-  ctx.beginPath();
-  ctx.arc(0, -28, 6, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 亮红凶呆小眼睛
-  ctx.fillStyle = '#d50000';
-  ctx.beginPath();
-  ctx.arc(-6, -4, 3, 0, Math.PI * 2);
-  ctx.arc(6, -4, 3, 0, Math.PI * 2);
-  ctx.fill();
-
-  // 走路摇晃小脚
-  const legOffset = Math.sin(Date.now() / 120 + e.wobble) * 4;
-  ctx.fillStyle = '#3e2723';
-  ctx.fillRect(-10, 28 + legOffset, 8, 8);
-  ctx.fillRect(2, 28 - legOffset, 8, 8);
-}
-
-// 12. 绘制阵眼石狮小推车
-function drawChibiLion(x, y) {
+// 核心美化函数：将高质量立绘融入 3D 青铜浮雕金令 (兼具精细微雕与现代Q弹质感)
+function drawPremiumToken(img, x, y, radius, borderColor, isFlash) {
   ctx.save();
   ctx.translate(x, y);
 
-  // 双轮木车板
-  ctx.fillStyle = '#5d4037';
-  ctx.fillRect(-22, 14, 44, 10);
-  ctx.fillStyle = '#b7791f';
+  // 1. 底部柔和立体投影
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 5;
+
+  // 2. 外层暗铜底座
   ctx.beginPath();
-  ctx.arc(-14, 24, 8, 0, Math.PI * 2);
-  ctx.arc(14, 24, 8, 0, Math.PI * 2);
+  ctx.arc(0, 0, radius + 4, 0, Math.PI * 2);
+  ctx.fillStyle = '#1e2d26';
   ctx.fill();
 
-  // 胖墩墩青石石狮
-  ctx.fillStyle = '#78909c';
+  // 3. 裁切高清立绘肖像
+  ctx.save();
+  ctx.shadowColor = 'transparent';
   ctx.beginPath();
-  ctx.arc(0, 0, 22, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#b0bec5';
-  ctx.lineWidth = 2;
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.clip();
+
+  if (isFlash) {
+    ctx.filter = 'brightness(260%) contrast(160%)';
+  } else {
+    // 鲜艳滤镜增强：提高对比度与饱和度，小尺寸下色彩鲜明不再灰暗
+    ctx.filter = 'contrast(116%) saturate(125%) brightness(106%)';
+  }
+
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, -radius, -radius, radius * 2, radius * 2);
+  } else {
+    ctx.fillStyle = '#34495e';
+    ctx.fillRect(-radius, -radius, radius * 2, radius * 2);
+  }
+  ctx.restore();
+
+  // 4. 青铜内圈凹凸高光渐变金边
+  const grad = ctx.createLinearGradient(-radius, -radius, radius, radius);
+  grad.addColorStop(0, '#fef5d1');
+  grad.addColorStop(0.5, borderColor || '#f5b041');
+  grad.addColorStop(1, '#8d6238');
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = grad;
   ctx.stroke();
 
-  // 卷曲狮鬃
-  ctx.fillStyle = '#546e7a';
-  for (let a = 0; a < Math.PI * 2; a += Math.PI / 4) {
-    ctx.beginPath();
-    ctx.arc(Math.cos(a) * 20, Math.sin(a) * 20, 6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-
-  // 金黄威武大眼睛与红舌头
-  ctx.fillStyle = '#ffea79';
+  // 5. 外圈倒角墨青轮廓
   ctx.beginPath();
-  ctx.arc(-7, -4, 4.5, 0, Math.PI * 2);
-  ctx.arc(7, -4, 4.5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#e91e63';
-  ctx.beginPath();
-  ctx.arc(0, 8, 4, 0, Math.PI);
-  ctx.fill();
-
-  // 脖间小金铃
-  ctx.fillStyle = '#f5b041';
-  ctx.beginPath();
-  ctx.arc(0, 16, 5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.arc(0, 0, radius + 4, 0, Math.PI * 2);
+  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = '#0e1613';
+  ctx.stroke();
 
   ctx.restore();
 }
 
-// 13. 绘制火飞鸦
-function drawChibiFireCrow(x, y) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.fillStyle = '#f4511e';
-  ctx.beginPath();
-  ctx.ellipse(0, 0, 22, 14, 0, 0, Math.PI * 2);
-  ctx.fill();
-  // 火焰喷尾
-  ctx.fillStyle = '#ffea00';
-  ctx.beginPath();
-  ctx.moveTo(-20, -8); ctx.lineTo(-38, 0); ctx.lineTo(-20, 8); ctx.closePath();
-  ctx.fill();
-  // 护目镜
-  ctx.fillStyle = '#263238';
-  ctx.fillRect(4, -8, 12, 16);
-  ctx.restore();
-}
-
-// 14. 绘制天降旋转金太阳齿轮
 function drawChibiSunGear() {
   ctx.shadowColor = '#ffe066';
   ctx.shadowBlur = 14;
@@ -1217,7 +894,6 @@ function drawChibiSunGear() {
   ctx.arc(0, 0, 16, 0, Math.PI * 2);
   ctx.fill();
 
-  // 齿轮齿
   ctx.strokeStyle = '#f5b041';
   ctx.lineWidth = 4;
   for (let i = 0; i < 8; i++) {
@@ -1241,7 +917,7 @@ function drawChunkyBar(x, y, w, h, ratio, color) {
   ctx.fillRect(x, y, Math.max(0, w * ratio), h);
 }
 
-// 15. 启动引擎与主循环
+// 11. 启动引擎与主循环
 initSeedBankUI();
 updateHUD();
 
