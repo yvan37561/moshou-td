@@ -2,140 +2,351 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>《山海机关录：墨守》- 现代Q版机关策略塔防</title>
-  <link rel="stylesheet" href="css/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>山海机关录：墨守 - 纯矢量精绘版</title>
+  <style>
+    :root {
+      --gold: #d4af37;
+      --gold-bright: #ffe082;
+      --gold-dark: #7a5c29;
+      --jade: #26a69a;
+      --jade-light: #80cbc4;
+      --bg-deep: #0b1114;
+      --panel-bg: rgba(16, 24, 28, 0.95);
+      --text-cream: #ece3ce;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: radial-gradient(circle at 50% 35%, #1c2b32 0%, #070b0d 100%);
+      color: var(--text-cream);
+      font-family: "STKaiti", "KaiTi", "PingFang SC", "Microsoft YaHei", serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 顶部雕花状态栏 */
+    #top-bar {
+      width: 980px;
+      height: 58px;
+      background: linear-gradient(90deg, #11191d 0%, #1d2b32 50%, #11191d 100%);
+      border: 2px solid var(--gold-dark);
+      border-bottom: 1px solid rgba(212, 175, 55, 0.4);
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      box-shadow: 0 -6px 25px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--gold-bright);
+      letter-spacing: 3px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 0 2px 8px rgba(212, 175, 55, 0.5);
+    }
+    .stats-group {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+    .stat-pill {
+      background: linear-gradient(180deg, rgba(8,14,16,0.85), rgba(20,32,38,0.85));
+      border: 1px solid var(--gold-dark);
+      padding: 5px 15px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.7);
+      font-size: 15px;
+    }
+    .stat-val {
+      color: var(--gold-bright);
+      font-weight: bold;
+      font-size: 18px;
+      font-family: "Segoe UI", Roboto, sans-serif;
+    }
+    .overload-btn {
+      background: linear-gradient(135deg, #c62828 0%, #680e0e 100%);
+      color: var(--gold-bright);
+      border: 1.5px solid var(--gold);
+      padding: 7px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+      box-shadow: 0 0 15px rgba(229, 57, 53, 0.5), inset 0 1px 2px rgba(255,255,255,0.3);
+    }
+    .overload-btn:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow: 0 0 22px rgba(255, 82, 82, 0.85);
+    }
+    .overload-btn:disabled {
+      filter: grayscale(0.9);
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* 主画布区 */
+    #game-wrapper {
+      position: relative;
+      width: 980px;
+      height: 540px;
+      border-left: 2px solid var(--gold);
+      border-right: 2px solid var(--gold);
+      box-shadow: 0 15px 50px rgba(0,0,0,0.9);
+      background: #121b1f;
+    }
+    canvas { display: block; cursor: crosshair; }
+
+    /* 底部国风竹简卡槽 */
+    #bottom-hud {
+      width: 980px;
+      height: 126px;
+      background: linear-gradient(180deg, #19252b 0%, #0d1417 100%);
+      border: 2px solid var(--gold-dark);
+      border-top: 2px solid var(--gold);
+      border-radius: 0 0 12px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.85);
+    }
+    #card-list {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* 精雕机关卡牌样式 */
+    .unit-card {
+      width: 92px;
+      height: 108px;
+      background: linear-gradient(165deg, #273840 0%, #141f24 65%, #0e161a 100%);
+      border: 1.5px solid var(--gold-dark);
+      border-radius: 8px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 4px 6px;
+      transition: all 0.18s cubic-bezier(0.25, 0.8, 0.25, 1);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 0 12px rgba(212, 175, 55, 0.08);
+      overflow: hidden;
+    }
+    .unit-card::before {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      border: 1px dashed rgba(212, 175, 55, 0.22);
+      border-radius: 5px;
+      pointer-events: none;
+    }
+    .unit-card:hover:not(.disabled) {
+      transform: translateY(-6px);
+      border-color: var(--gold-bright);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.8), 0 0 12px rgba(212, 175, 55, 0.35);
+    }
+    .unit-card.selected {
+      border-color: #ffca28;
+      background: linear-gradient(165deg, #344952 0%, #1c2b32 100%);
+      box-shadow: 0 0 18px rgba(255, 202, 40, 0.75), inset 0 0 10px rgba(255, 202, 40, 0.3);
+      transform: translateY(-8px) scale(1.03);
+    }
+    .unit-card.disabled {
+      opacity: 0.42;
+      filter: grayscale(0.85);
+      cursor: not-allowed;
+    }
+    .card-tag {
+      font-size: 10px;
+      color: var(--jade-light);
+      background: rgba(38, 166, 154, 0.18);
+      border: 1px solid rgba(38, 166, 154, 0.4);
+      padding: 0 6px;
+      border-radius: 3px;
+      z-index: 2;
+    }
+    .card-icon-canvas {
+      width: 54px;
+      height: 54px;
+      z-index: 2;
+      filter: drop-shadow(0 3px 4px rgba(0,0,0,0.7));
+    }
+    .card-footer {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 2;
+    }
+    .card-name {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--text-cream);
+      letter-spacing: 1px;
+      text-shadow: 0 1px 3px #000;
+    }
+    .card-cost {
+      font-size: 12px;
+      font-weight: bold;
+      color: #ffca28;
+      font-family: sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .cd-overlay {
+      position: absolute;
+      left: 0; bottom: 0; width: 100%; height: 0%;
+      background: rgba(6, 10, 12, 0.82);
+      border-top: 1px solid var(--gold);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* 鲁班拆解钳 */
+    #shovel-btn {
+      width: 86px;
+      height: 96px;
+      border-radius: 10px;
+      background: radial-gradient(circle at 50% 35%, #2f424a 0%, #151e22 100%);
+      border: 2px solid var(--gold-dark);
+      color: var(--text-cream);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.6);
+    }
+    #shovel-btn:hover { border-color: var(--gold-bright); transform: translateY(-3px); }
+    #shovel-btn.active {
+      border-color: #ff5252;
+      background: radial-gradient(circle, #4a2323 0%, #1f0d0d 100%);
+      box-shadow: 0 0 20px rgba(255, 82, 82, 0.8);
+      transform: scale(1.06);
+    }
+
+    /* 肉鸽三选一锻造弹窗 */
+    #rogue-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 10, 13, 0.88);
+      backdrop-filter: blur(5px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-title {
+      font-size: 30px;
+      color: var(--gold-bright);
+      margin-bottom: 6px;
+      letter-spacing: 5px;
+      text-shadow: 0 0 16px rgba(212,175,55,0.7);
+    }
+    .modal-sub { font-size: 14px; color: #a8b5ba; margin-bottom: 28px; }
+    .buff-container { display: flex; gap: 24px; }
+    .buff-card {
+      width: 240px;
+      background: linear-gradient(160deg, #223239 0%, #11191d 100%);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      padding: 22px 18px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.22s;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    .buff-card:hover {
+      transform: translateY(-10px) scale(1.04);
+      border-color: #fff;
+      box-shadow: 0 15px 35px rgba(212, 175, 55, 0.5);
+    }
+    .buff-tag {
+      display: inline-block;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(212, 175, 55, 0.2);
+      border: 1px solid var(--gold);
+      color: var(--gold-bright);
+      margin-bottom: 12px;
+    }
+    .buff-title { font-size: 20px; color: #ffca28; margin-bottom: 12px; font-weight: bold; }
+    .buff-desc { font-size: 13px; line-height: 1.65; color: #d5cbb8; font-family: sans-serif; }
+  </style>
 </head>
 <body>
 
-  <!-- 主视口自适应框架 (960 x 640 经典视口) -->
-  <div id="app-viewport">
-
-    <!-- 顶部经典植物大战僵尸木雕卡槽栏 (PvZ Top Bar) -->
-    <header id="pvz-top-bar">
-      <!-- 1. 灵气太阳池 (Sun Bank) -->
-      <div id="sun-bank" onclick="window.soundEngine && window.soundEngine.playSun()">
-        <div class="sun-icon-wrap">
-          <span class="sun-gear">⚙️</span>
-        </div>
-        <div class="sun-val" id="qi-val">150</div>
+  <!-- 顶部导航栏 -->
+  <div id="top-bar">
+    <div class="brand-title">
+      <span>☯</span>
+      <span>山海机关录 · 墨守</span>
+    </div>
+    <div class="stats-group">
+      <div class="stat-pill">
+        <span>⚙️ 天工灵气</span>
+        <span id="qi-display" class="stat-val">200</span>
       </div>
-
-      <!-- 2. 机关种子卡牌栏 (Seed Bank) -->
-      <div id="seed-bank"></div>
-
-      <!-- 3. 鲁班拆解铲槽 (PvZ Shovel Slot) -->
-      <div id="shovel-slot" onclick="toggleShovelMode()">
-        <span class="shovel-icon">🛠️</span>
-        <span class="shovel-label">拆解铲</span>
+      <div class="stat-pill">
+        <span>🏮 镇守波次</span>
+        <span id="wave-display" class="stat-val">1 / 10</span>
       </div>
-
-      <!-- 4. 波次进度标尺 (PvZ Wave Progress Flag) -->
-      <div id="wave-meter-wrap">
-        <div class="wave-title-row">
-          <span>🌊 魇魔波次</span>
-          <span id="wave-num-text">1 / 10</span>
-        </div>
-        <div class="wave-track">
-          <div class="wave-fill" id="wave-fill"></div>
-          <span class="wave-head-marker" id="wave-head">👾</span>
-          <span class="wave-flag" style="left: 45%;">🚩</span>
-          <span class="wave-flag" style="right: 5%;">🚩</span>
-        </div>
+      <div class="stat-pill">
+        <span>🔥 矩子炉能</span>
+        <span id="energy-display" class="stat-val">50%</span>
       </div>
-
-      <!-- 5. 菜单与大招控制组 -->
-      <div class="top-menu-group">
-        <button id="overload-btn" class="mini-btn overload-pill" onclick="triggerOverload()">⚡ 机巧过载 (50%)</button>
-        <div style="display: flex; gap: 4px;">
-          <button class="mini-btn" onclick="toggleModal('talent-modal')">🏛️ 矩子阁</button>
-          <button class="mini-btn" onclick="toggleModal('map-modal')">🗺️ 八阵图</button>
-          <button class="mini-btn" id="speed-btn" onclick="toggleGameSpeed()">⏩ 1X</button>
-        </div>
-      </div>
-    </header>
-
-    <!-- 战场画布主舞台 (The Lawn Stage) -->
-    <main id="canvas-stage">
-      <canvas id="gameCanvas" width="960" height="546"></canvas>
-
-      <!-- PvZ 经典大波僵尸红色警告横幅 (Huge Wave Alert Banner) -->
-      <div id="huge-wave-banner">
-        <div class="huge-wave-text">⚠️ 一大波山海魇魔正在逼近！</div>
-        <div class="huge-wave-sub">全军机关戒备 · 筑坚壁以拒万妖</div>
-      </div>
-
-      <!-- 鲁班天工密卷三选一强化弹窗 (PvZ Roguelite Buff Modal) -->
-      <div id="rogue-modal">
-        <div class="modal-wood-frame">
-          <div class="modal-header">📜 鲁班密卷 · 天工强化</div>
-          <div class="modal-subtext">击退凶猛精英潮！选择一项墨家秘术强化全场阵盘</div>
-          <div class="buff-cards-row" id="buff-cards-row"></div>
-        </div>
-      </div>
-
-      <!-- 墨门矩子阁天赋弹窗 -->
-      <div id="talent-modal" class="overlay-dialog">
-        <div class="dialog-box">
-          <div class="dialog-title">🏛️ 墨家矩子阁 · 机关秘术</div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px;">
-            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
-              <b style="color: #f5b041;">⚙️ 飞轮润滑</b>
-              <p style="color: #bdc3c7; margin-top: 4px;">全场机关初始部署冷却缩减 20%</p>
-            </div>
-            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
-              <b style="color: #f5b041;">🔥 天工熔炉</b>
-              <p style="color: #bdc3c7; margin-top: 4px;">击杀魇魔时额外产生 5 点过载能量</p>
-            </div>
-            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
-              <b style="color: #f5b041;">🛡️ 兼爱非攻</b>
-              <p style="color: #bdc3c7; margin-top: 4px;">玄武盾与所有机关耐久度提升 25%</p>
-            </div>
-            <div style="background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid #d4af37;">
-              <b style="color: #f5b041;">🌾 节用富灵</b>
-              <p style="color: #bdc3c7; margin-top: 4px;">拆解铲返还灵气比例永久提升至 60%</p>
-            </div>
-          </div>
-          <button class="close-dialog-btn" onclick="toggleModal('talent-modal')">关闭卷轴</button>
-        </div>
-      </div>
-
-      <!-- 八阵图分岔弹窗 -->
-      <div id="map-modal" class="overlay-dialog">
-        <div class="dialog-box">
-          <div class="dialog-title">🗺️ 八阵图 · 奇门演武星图</div>
-          <div style="text-align: center; color: #bdc3c7; font-size: 14px; margin-bottom: 14px;">
-            当前镇守：【第一关 · 雁门关外青石坡】
-          </div>
-          <div style="display: flex; justify-content: space-around; gap: 10px;">
-            <div style="background: rgba(0,0,0,0.5); padding: 14px; border-radius: 10px; border: 1.5px solid #27ae60; text-align: center; flex: 1;">
-              <div style="font-size: 24px;">⚔️</div>
-              <div style="color: #2ecc71; font-weight: bold; margin-top: 6px;">青铜兵俑大营</div>
-              <div style="font-size: 11px; color: #aaa; margin-top: 4px;">难度：普通 (刀币+60)</div>
-            </div>
-            <div style="background: rgba(0,0,0,0.5); padding: 14px; border-radius: 10px; border: 1.5px solid #e67e22; text-align: center; flex: 1;">
-              <div style="font-size: 24px;">💀</div>
-              <div style="color: #f39c12; font-weight: bold; margin-top: 6px;">蛮荒巨斧精英</div>
-              <div style="font-size: 11px; color: #aaa; margin-top: 4px;">难度：精英 (鲁班密卷+1)</div>
-            </div>
-            <div style="background: rgba(0,0,0,0.5); padding: 14px; border-radius: 10px; border: 1.5px solid #9b59b6; text-align: center; flex: 1;">
-              <div style="font-size: 24px;">🏪</div>
-              <div style="color: #bb86fc; font-weight: bold; margin-top: 6px;">鬼谷奇珍诡市</div>
-              <div style="font-size: 11px; color: #aaa; margin-top: 4px;">休整·购买稀有机关图谱</div>
-            </div>
-          </div>
-          <button class="close-dialog-btn" onclick="toggleModal('map-modal')">重返战阵</button>
-        </div>
-      </div>
-    </main>
-
+      <button id="overload-btn" class="overload-btn" onclick="triggerGlobalOverload()">⚡ 机巧过载 (50%)</button>
+    </div>
   </div>
 
-  <!-- 引入纯程序合成音效引擎 -->
-  <script src="js/audio.js"></script>
-  <!-- 引入现代Q版核心引擎 -->
-  <script src="js/game.js"></script>
+  <!-- 游戏主战场画布 -->
+  <div id="game-wrapper">
+    <canvas id="gameCanvas" width="980" height="540"></canvas>
+
+    <!-- 肉鸽三选一弹窗 -->
+    <div id="rogue-modal">
+      <div class="modal-title">📜 鲁班密卷 · 天工锻造</div>
+      <div class="modal-sub">抵御住山海妖潮！请从以下三卷墨家绝学中择一传授全军</div>
+      <div class="buff-container" id="buff-list"></div>
+    </div>
+  </div>
+
+  <!-- 底部8卡槽与拆解钳 -->
+  <div id="bottom-hud">
+    <div id="card-list"></div>
+    <div id="shovel-btn" onclick="toggleShovel()" title="拆解机关并回收灵气">
+      <svg width="34" height="34" viewBox="0 0 40 40">
+        <path d="M12 6 C6 10, 6 20, 14 22 L18 36 L22 36 L26 22 C34 20, 34 10, 28 6 L24 14 L16 14 Z" fill="#b0bec5" stroke="#d4af37" stroke-width="2"/>
+        <circle cx="20" cy="19" r="3" fill="#d4af37"/>
+      </svg>
+      <span style="font-size: 13px; font-weight: bold; margin-top: 4px;">鲁班钳</span>
+      <span style="font-size: 11px; color: #ffca28;" id="shovel-rate">返40%</span>
+    </div>
+  </div>
+
+<script src="js/audio.js"></script>
+<script src="js/game.js"></script>
 </body>
 </html>
